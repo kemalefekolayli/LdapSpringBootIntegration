@@ -4,6 +4,12 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# OpenLDAP internals
+ldap/config/cn=config/
+ldap/config/cn=config.ldif
+ldap/data/
+*.mdb
+
 ### STS ###
 .apt_generated
 .classpath
@@ -33,3 +39,5 @@ build/
 .vscode/
 ldap/config/cn=config/
 ldap/config/cn=config.ldif
+ldap/data/
+*.mdb
