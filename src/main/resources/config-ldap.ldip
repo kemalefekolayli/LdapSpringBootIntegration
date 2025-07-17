@@ -1,0 +1,49 @@
+dn: dc=example,dc=com
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: Example Corp
+dc: example
+
+dn: ou=people,dc=example,dc=com
+objectClass: organizationalUnit
+ou: people
+
+dn: ou=groups,dc=example,dc=com
+objectClass: organizationalUnit
+ou: groups
+
+dn: uid=aeinstein,ou=people,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: Albert Einstein
+sn: Einstein
+uid: aeinstein
+userPassword: password
+mail: aeinstein@example.com
+
+dn: uid=ntesla,ou=people,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: Nikola Tesla
+sn: Tesla
+uid: ntesla
+userPassword: password
+mail: ntesla@example.com
+
+dn: cn=developers,ou=groups,dc=example,dc=com
+objectClass: top
+objectClass: groupOfNames
+cn: developers
+member: uid=ntesla,ou=people,dc=example,dc=com
+
+dn: cn=scientists,ou=groups,dc=example,dc=com
+objectClass: top
+objectClass: groupOfNames
+cn: scientists
+member: uid=aeinstein,ou=people,dc=example,dc=com
+member: uid=ntesla,ou=people,dc=example,dc=com

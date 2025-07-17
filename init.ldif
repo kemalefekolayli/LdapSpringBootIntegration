@@ -1,0 +1,57 @@
+
+# Base DN
+dn: dc=example,dc=org
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: Example Corp
+dc: example
+
+# People (Kullanıcılar)
+dn: ou=people,dc=example,dc=org
+objectClass: organizationalUnit
+ou: people
+
+# Groups (Gruplar)
+dn: ou=groups,dc=example,dc=org
+objectClass: organizationalUnit
+ou: groups
+
+# Kullanıcı: aeinstein
+dn: uid=aeinstein,ou=people,dc=example,dc=org
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: Albert Einstein
+sn: Einstein
+uid: aeinstein
+userPassword: {SSHA}your_hashed_password_here # Gerçek bir hash kullanın veya test için 'password'
+mail: aeinstein@example.org
+
+# Kullanıcı: ntesla
+dn: uid=ntesla,ou=people,dc=example,dc=org
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: Nikola Tesla
+sn: Tesla
+uid: ntesla
+userPassword: {SSHA}your_hashed_password_here # Test için 'password'
+mail: ntesla@example.org
+
+# Grup: developers
+dn: cn=developers,ou=groups,dc=example,dc=org
+objectClass: top
+objectClass: groupOfNames
+cn: developers
+member: uid=ntesla,ou=people,dc=example,dc=org
+
+# Grup: scientists
+dn: cn=scientists,ou=groups,dc=example,dc=org
+objectClass: top
+objectClass: groupOfNames
+cn: scientists
+member: uid=aeinstein,ou=people,dc=example,dc=org
+member: uid=ntesla,ou=people,dc=example,dc=org
