@@ -1,4 +1,4 @@
-package com.example.ldapspring.repository;
+package com.example.ldapspring.entity;
 
 import com.example.ldapspring.entity.LdapUser;
 import org.springframework.data.ldap.repository.LdapRepository;
