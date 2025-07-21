@@ -1,7 +1,7 @@
 package com.example.ldapspring.service;
 
 import com.example.ldapspring.entity.LdapUser;
-import com.example.ldapspring.repository.LdapUserRepository;
+import com.example.ldapspring.entity.LdapUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.support.LdapNameBuilder;

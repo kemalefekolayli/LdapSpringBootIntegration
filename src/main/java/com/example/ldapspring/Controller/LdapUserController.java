@@ -18,10 +18,15 @@ public class LdapUserController {
     @Autowired
     private LdapUserService ldapUserService;
 
+    @GetMapping
+    public ResponseEntity<String> isUp(){
+        return new ResponseEntity<>("UP", HttpStatus.OK);
+    }
+
     /**
      * Tüm kullanıcıları getir
      */
-    @GetMapping
+    @GetMapping("/getall")
     public ResponseEntity<List<LdapUser>> getAllUsers() {
         try {
             List<LdapUser> users = ldapUserService.getAllUsers();
