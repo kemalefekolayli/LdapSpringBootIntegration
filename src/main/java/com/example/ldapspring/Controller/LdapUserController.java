@@ -18,7 +18,7 @@ public class LdapUserController {
     @Autowired
     private LdapUserService ldapUserService;
 
-    @GetMapping
+    @GetMapping("/deneme")
     public ResponseEntity<String> isUp(){
         return new ResponseEntity<>("UP", HttpStatus.OK);
     }
@@ -39,7 +39,7 @@ public class LdapUserController {
     /**
      * UID ile kullanıcı getir
      */
-    @GetMapping("/{uid}")
+    @GetMapping("/uid/{uid}")
     public ResponseEntity<LdapUser> getUserByUid(@PathVariable String uid) {
         try {
             Optional<LdapUser> user = ldapUserService.getUserByUid(uid);

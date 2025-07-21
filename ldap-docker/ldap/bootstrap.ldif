@@ -7,42 +7,61 @@ cn: admin
 userPassword: adminpassword
 description: LDAP Administrator
 
-# organisational unit for IT department
+# people organizational unit
+dn: ou=people,dc=example,dc=org
+changetype: add
+objectClass: organizationalUnit
+ou: people
+
+# groups organizational unit
+dn: ou=groups,dc=example,dc=org
+changetype: add
+objectClass: organizationalUnit
+ou: groups
+
+# IT organizational unit
 dn: ou=IT,dc=example,dc=org
 changetype: add
 objectClass: organizationalUnit
 ou: IT
 
-# user: John Doe for unit IT department
-dn: uid=johndoe,ou=IT,dc=example,dc=org
+# Marketing organizational unit
+dn: ou=Marketing,dc=example,dc=org
+changetype: add
+objectClass: organizationalUnit
+ou: Marketing
+
+# GERÇEK KULLANICILAR - people OU'sunun altında
+dn: uid=johndoe,ou=people,dc=example,dc=org
 changetype: add
 objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+objectClass: top
 cn: John Doe
 sn: Doe
 uid: johndoe
 mail: johndoe@example.org
 userPassword: password123
 
-# user: Anna Meier for unit IT department
-dn: uid=anna.meier,ou=IT,dc=example,dc=org
+dn: uid=anna.meier,ou=people,dc=example,dc=org
 changetype: add
 objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+objectClass: top
 cn: Anna Meier
 sn: Meier
 uid: anna.meier
 mail: anna.meier@example.org
 userPassword: password456
 
-# organisational unit for marketing department
-dn: ou=Marketing,dc=example,dc=org
-changetype: add
-objectClass: organizationalUnit
-ou: Marketing
-
-# user: Peter Schmidt for the  der marketing department
-dn: uid=peter.schmidt,ou=Marketing,dc=example,dc=org
+dn: uid=peter.schmidt,ou=people,dc=example,dc=org
 changetype: add
 objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+objectClass: top
 cn: Peter Schmidt
 sn: Schmidt
 uid: peter.schmidt

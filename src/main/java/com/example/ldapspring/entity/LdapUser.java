@@ -8,7 +8,7 @@ import org.springframework.ldap.odm.annotations.DnAttribute;
 import javax.naming.Name;
 
 @Entry(base = "ou=people,dc=example,dc=org", objectClasses = {"inetOrgPerson", "organizationalPerson", "person", "top"})
-public class LdapUser {
+public final class LdapUser {
 
     @Id
     private Name dn;
