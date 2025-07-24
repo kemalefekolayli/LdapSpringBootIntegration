@@ -65,17 +65,51 @@ public class LdapUserService {
     }
 
 
+
+
     public LdapUser createUser(LdapUser user) {
         try {
-            // DN oluştur
-            Name dn = LdapNameBuilder.newInstance("dc=example,dc=org")
-                    .add("ou", "people")
-                    .add("uid", user.getUid())
-                    .build();
-            user.setDn(dn);
+            // Input validation
+            if (user.getUid() == null || user.getUid().trim().isEmpty()) {
+                throw new IllegalArgumentException("UID boş olamaz");
+            }
+            if (user.getFullName() == null || user.getFullName().trim().isEmpty()) {
+                throw new IllegalArgumentException("Full name boş olamaz");
+            }
+            if (user.getLastName() == null || user.getLastName().trim().isEmpty()) {
+                throw new IllegalArgumentException("Last name boş olamaz");
+            }
+            if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+                throw new IllegalArgumentException("Email boş olamaz");
+            }
+
+            // Kullanıcının zaten var olup olmadığını kontrol et
+            LdapUser existingUser = null;
+            try {
+                existingUser = ldapUserRepository.findByUid(user.getUid());
+            } catch (Exception e) {
+                // Repository error ignore - user doesn't exist
+            }
+
+            if (existingUser != null) {
+                throw new RuntimeException("Bu UID ile kullanıcı zaten mevcut: " + user.getUid());
+            }
+
+            // Default password set et if empty
+            if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
+                user.setPassword("defaultpass123");
+            }
+
+            user.setDn(null);
+
+            System.out.println("Creating user with auto-generated DN: " + user.getUid());
+            System.out.println("User details: " + user.toString());
 
             return ldapUserRepository.save(user);
+
         } catch (Exception e) {
+            System.err.println("createUser error: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Kullanıcı oluşturulamadı: " + e.getMessage(), e);
         }
     }

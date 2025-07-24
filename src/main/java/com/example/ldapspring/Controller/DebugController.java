@@ -1,13 +1,20 @@
 package com.example.ldapspring.Controller;
 
+import com.example.ldapspring.entity.LdapUser;
+import com.example.ldapspring.service.LdapUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ldap.core.AttributesMapper;
+import org.springframework.ldap.core.ContextMapper;
+import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.naming.NamingException;
+import javax.naming.directory.Attributes;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -16,6 +23,9 @@ public class DebugController {
 
     @Autowired
     private LdapTemplate ldapTemplate;
+
+    @Autowired
+    private LdapUserService ldapUserService;
 
     @GetMapping("/ping")
     public ResponseEntity<String> ping() {
@@ -38,17 +48,93 @@ public class DebugController {
         return ResponseEntity.ok(result);
     }
 
+    // LdapUserController.java'ya bu metod'u ekleyin
+    @PostMapping("/create-debug")
+    public ResponseEntity<?> createUserDebug(@RequestBody LdapUser user) {
+        Map<String, String> result = new HashMap<>();
+
+        try {
+            System.out.println("=== CREATE DEBUG START ===");
+            System.out.println("Received user: " + user.toString());
+
+            // Adım 1: Input validation
+            result.put("step1_input_received", "OK");
+
+            if (user.getUid() == null || user.getUid().trim().isEmpty()) {
+                result.put("step1_validation", "FAILED - UID empty");
+                return ResponseEntity.badRequest().body(result);
+            }
+            result.put("step1_validation", "OK");
+
+            // Adım 2: Service existence check
+            System.out.println("Checking if user exists...");
+            boolean exists = ldapUserService.userExists(user.getUid());
+            result.put("step2_existence_check", exists ? "USER_EXISTS" : "USER_NOT_EXISTS");
+
+            if (exists) {
+                result.put("step2_result", "FAILED - User already exists");
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(result);
+            }
+            result.put("step2_result", "OK");
+
+            // Adım 3: Service create call
+            System.out.println("Calling createUser service...");
+            LdapUser createdUser = ldapUserService.createUser(user);
+            result.put("step3_service_call", "OK");
+            result.put("step3_created_uid", createdUser.getUid());
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+
+        } catch (Exception e) {
+            System.err.println("ERROR in create-debug: " + e.getMessage());
+            e.printStackTrace();
+
+            result.put("error", "EXCEPTION");
+            result.put("error_message", e.getMessage());
+            result.put("error_type", e.getClass().getSimpleName());
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
+    }
+
     @GetMapping("/test-base")
     public ResponseEntity<Map<String, String>> testBaseDN() {
         Map<String, String> result = new HashMap<>();
 
         try {
-            Object lookup = ldapTemplate.lookup("dc=example,dc=org");
+            // Search ile test et - açık tip belirtimi
+            List<String> searchResult = ldapTemplate.search(
+                    "",  // base DN'den itibaren ara
+                    "(objectClass=dcObject)",  // dcObject olan entry'leri ara
+                    new AttributesMapper<String>() {
+                        @Override
+                        public String mapFromAttributes(Attributes attributes) throws NamingException {
+                            return attributes.toString();
+                        }
+                    }
+            );
+
             result.put("base_dn", "EXISTS");
-            result.put("object_type", lookup.getClass().getSimpleName());
+            result.put("search_result_count", String.valueOf(searchResult.size()));
+            result.put("method", "search");
+
+            if (!searchResult.isEmpty()) {
+                result.put("first_result", searchResult.get(0));
+            }
+
         } catch (Exception e) {
-            result.put("base_dn", "FAILED");
+            result.put("base_dn", "SEARCH_FAILED");
             result.put("error", e.getMessage());
+
+            // Alternatif: lookup dene
+            try {
+                Object lookup = ldapTemplate.lookup("dc=example,dc=org");
+                result.put("lookup_attempt", "SUCCESS");
+                result.put("lookup_result", lookup != null ? lookup.toString() : "null");
+            } catch (Exception lookupEx) {
+                result.put("lookup_attempt", "FAILED");
+                result.put("lookup_error", lookupEx.getMessage());
+            }
         }
 
         return ResponseEntity.ok(result);
@@ -59,11 +145,35 @@ public class DebugController {
         Map<String, String> result = new HashMap<>();
 
         try {
-            Object lookup = ldapTemplate.lookup("ou=people,dc=example,dc=org");
+            // Search ile people OU'yu test et - açık tip belirtimi
+            List<String> searchResult = ldapTemplate.search(
+                    "ou=people",  // people OU'da ara
+                    "(objectClass=organizationalUnit)",  // organizationalUnit olan entry'leri ara
+                    new AttributesMapper<String>() {
+                        @Override
+                        public String mapFromAttributes(Attributes attributes) throws NamingException {
+                            return attributes.toString();
+                        }
+                    }
+            );
+
             result.put("people_ou", "EXISTS");
+            result.put("search_result_count", String.valueOf(searchResult.size()));
+            result.put("method", "search");
+
         } catch (Exception e) {
-            result.put("people_ou", "NOT_FOUND");
-            result.put("error", e.getMessage());
+            result.put("people_ou", "SEARCH_FAILED");
+            result.put("search_error", e.getMessage());
+
+            // Alternatif: lookup dene
+            try {
+                Object lookup = ldapTemplate.lookup("ou=people,dc=example,dc=org");
+                result.put("lookup_attempt", "SUCCESS");
+                result.put("lookup_result", lookup != null ? lookup.toString() : "null");
+            } catch (Exception lookupEx) {
+                result.put("lookup_attempt", "FAILED");
+                result.put("lookup_error", lookupEx.getMessage());
+            }
         }
 
         return ResponseEntity.ok(result);
@@ -77,10 +187,26 @@ public class DebugController {
 
         for (String ou : ous) {
             try {
-                ldapTemplate.lookup("ou=" + ou + ",dc=example,dc=org");
-                result.put(ou, "EXISTS");
+                // Search ile test et - açık tip belirtimi
+                List<String> searchResult = ldapTemplate.search(
+                        "ou=" + ou,
+                        "(objectClass=organizationalUnit)",
+                        new AttributesMapper<String>() {
+                            @Override
+                            public String mapFromAttributes(Attributes attributes) throws NamingException {
+                                return attributes.toString();
+                            }
+                        }
+                );
+
+                if (!searchResult.isEmpty()) {
+                    result.put(ou, "EXISTS_VIA_SEARCH");
+                } else {
+                    result.put(ou, "EMPTY_SEARCH_RESULT");
+                }
+
             } catch (Exception e) {
-                result.put(ou, "NOT_FOUND");
+                result.put(ou, "SEARCH_FAILED: " + e.getMessage());
             }
         }
 
@@ -102,6 +228,103 @@ public class DebugController {
         } catch (Exception e) {
             result.put("context_status", "ERROR");
             result.put("context_error", e.getMessage());
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/test-users-in-people")
+    public ResponseEntity<Map<String, String>> testUsersInPeople() {
+        Map<String, String> result = new HashMap<>();
+
+        try {
+            // People OU'da kullanıcı ara - ContextMapper kullan
+            List<String> users = ldapTemplate.search(
+                    "ou=people",
+                    "(objectClass=inetOrgPerson)",
+                    new ContextMapper<String>() {
+                        @Override
+                        public String mapFromContext(Object ctx) throws NamingException {
+                            DirContextAdapter context = (DirContextAdapter) ctx;
+                            return context.getDn().toString();
+                        }
+                    }
+            );
+
+            result.put("users_found", String.valueOf(users.size()));
+            result.put("status", "SUCCESS");
+
+            for (int i = 0; i < Math.min(3, users.size()); i++) {
+                result.put("user_" + (i+1), users.get(i));
+            }
+
+        } catch (Exception e) {
+            result.put("status", "FAILED");
+            result.put("error", e.getMessage());
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/ldap-structure")
+    public ResponseEntity<Map<String, Object>> exploreLdapStructure() {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // Root level'dan başlayarak yapıyı keşfet - ContextMapper kullan
+            List<String> rootEntries = ldapTemplate.search(
+                    "",
+                    "(objectClass=*)",
+                    new ContextMapper<String>() {
+                        @Override
+                        public String mapFromContext(Object ctx) throws NamingException {
+                            DirContextAdapter context = (DirContextAdapter) ctx;
+                            return context.getDn().toString();
+                        }
+                    }
+            );
+
+            result.put("total_entries_from_root", rootEntries.size());
+            result.put("first_10_entries", rootEntries.subList(0, Math.min(10, rootEntries.size())));
+            result.put("status", "SUCCESS");
+
+        } catch (Exception e) {
+            result.put("status", "FAILED");
+            result.put("error", e.getMessage());
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/simple-base-test")
+    public ResponseEntity<Map<String, String>> simpleBaseTest() {
+        Map<String, String> result = new HashMap<>();
+
+        try {
+            // En basit test: sadece lookup
+            Object lookup = ldapTemplate.lookup("dc=example,dc=org");
+            result.put("simple_lookup", "SUCCESS");
+            result.put("result_type", lookup != null ? lookup.getClass().getSimpleName() : "null");
+        } catch (Exception e) {
+            result.put("simple_lookup", "FAILED");
+            result.put("error", e.getMessage());
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/simple-people-test")
+    public ResponseEntity<Map<String, String>> simplePeopleTest() {
+        Map<String, String> result = new HashMap<>();
+
+        try {
+            // En basit test: sadece lookup
+            Object lookup = ldapTemplate.lookup("ou=people,dc=example,dc=org");
+            result.put("simple_people_lookup", "SUCCESS");
+            result.put("result_type", lookup != null ? lookup.getClass().getSimpleName() : "null");
+        } catch (Exception e) {
+            result.put("simple_people_lookup", "FAILED");
+            result.put("error", e.getMessage());
         }
 
         return ResponseEntity.ok(result);

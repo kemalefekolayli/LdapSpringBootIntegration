@@ -18,6 +18,12 @@ public class LdapUserController {
     @Autowired
     private LdapUserService ldapUserService;
 
+    @PostMapping("/echo")
+    public ResponseEntity<LdapUser> echoUser(@RequestBody LdapUser user) {
+        System.out.println("POST /echo called with: " + user.toString());
+        return ResponseEntity.ok(user);
+    }
+
     @GetMapping("/deneme")
     public ResponseEntity<String> isUp(){
         return new ResponseEntity<>("UP", HttpStatus.OK);
