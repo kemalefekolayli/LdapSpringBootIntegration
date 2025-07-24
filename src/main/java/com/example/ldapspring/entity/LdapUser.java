@@ -1,5 +1,6 @@
 package com.example.ldapspring.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.ldap.odm.annotations.Id;
 import org.springframework.ldap.odm.annotations.Attribute;
 import org.springframework.ldap.odm.annotations.Entry;
@@ -7,10 +8,11 @@ import org.springframework.ldap.odm.annotations.DnAttribute;
 
 import javax.naming.Name;
 
-@Entry(base = "ou=people,dc=example,dc=org", objectClasses = {"inetOrgPerson", "organizationalPerson", "person", "top"})
+@Entry(base = "ou=people", objectClasses = {"inetOrgPerson", "organizationalPerson", "person", "top"})
 public final class LdapUser {
 
     @Id
+    @JsonIgnore
     private Name dn;
 
     @Attribute(name = "uid")

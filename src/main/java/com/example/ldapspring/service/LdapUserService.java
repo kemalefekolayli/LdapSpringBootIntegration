@@ -39,6 +39,16 @@ public class LdapUserService {
         }
     }
 
+    public Optional<LdapUser> getUserByEmailAndPassword(String email, String password) {
+        try {
+            LdapUser user = ldapUserRepository.findByEmailAndPassword(email, password);
+            return Optional.ofNullable(user);
+        }
+        catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
 
     public Optional<LdapUser> getUserByEmail(String email) {
         try {

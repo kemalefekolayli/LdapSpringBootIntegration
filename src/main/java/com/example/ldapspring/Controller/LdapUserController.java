@@ -23,11 +23,24 @@ public class LdapUserController {
         return new ResponseEntity<>("UP", HttpStatus.OK);
     }
 
+    @PostMapping("/getbyemailandpassword")
+    public ResponseEntity<LdapUser> getUserByEmailAndPassword(@RequestBody EmailAndPassword emailAndPassword) {
+        try {
+            String email = emailAndPassword.getEmail();
+            String password = emailAndPassword.getPassword();
+            Optional<LdapUser> user = ldapUserService.getUserByEmailAndPassword(email, password);
+            return new ResponseEntity<>(user.get(), HttpStatus.OK);
+        }
+        catch (Exception e){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
     /**
      * Tüm kullanıcıları getir
      */
     @GetMapping("/getall")
-    public ResponseEntity<List<LdapUser>> getAllUsers() {
+    public ResponseE ntity<List<LdapUser>> getAllUsers() {
         try {
             List<LdapUser> users = ldapUserService.getAllUsers();
             return ResponseEntity.ok(users);
@@ -164,6 +177,18 @@ public class LdapUserController {
 
         public void setNewPassword(String newPassword) {
             this.newPassword = newPassword;
+        }
+    }
+
+    public static class EmailAndPassword {
+        private String email;
+        private String password;
+
+        public String getEmail(){
+            return email;
+        }
+        public String getPassword(){
+            return password;
         }
     }
 

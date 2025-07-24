@@ -14,6 +14,8 @@ public interface LdapUserRepository extends LdapRepository<LdapUser> {
 
     LdapUser findByEmail(String email);
 
+    LdapUser findByEmailAndPassword(String email, String password );
+
     List<LdapUser> findByFullNameContainingIgnoreCase(String fullName);
 
     List<LdapUser> findByLastName(String lastName);
