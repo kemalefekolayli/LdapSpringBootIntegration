@@ -40,7 +40,7 @@ public class LdapUserController {
      * Tüm kullanıcıları getir
      */
     @GetMapping("/getall")
-    public ResponseE ntity<List<LdapUser>> getAllUsers() {
+    public ResponseEntity<List<LdapUser>> getAllUsers() {
         try {
             List<LdapUser> users = ldapUserService.getAllUsers();
             return ResponseEntity.ok(users);
