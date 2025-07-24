@@ -16,7 +16,7 @@ public final class LdapUser {
     private Name dn;
 
     @Attribute(name = "uid")
-    @DnAttribute(value = "uid", index = 0)
+    @DnAttribute(value = "uid", index = 1)
     private String uid;
 
     @Attribute(name = "cn")

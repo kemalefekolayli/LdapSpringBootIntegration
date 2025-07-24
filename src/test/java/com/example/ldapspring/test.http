@@ -2,16 +2,20 @@
 ### Bu testler CREATE işleminden sonra UID'nin doğru olup olmadığını kontrol eder
 
 ### 1. CREATE - Test Kullanıcısı Oluştur
-POST http://localhost:8080/api/users
+
+
+POST http://localhost:8080/api/debug/create-debug
 Content-Type: application/json
 
 {
-  "uid": "deneme123123",
-  "fullName": "Delete Testasewd",
-  "lastName": "Testasdsad",
+  "uid": "ahmetmehmet123",
+  "fullName": "mehmet",
+  "lastName": "ahmet",
   "email": "deletetestasasdd@example.org",
   "password": "deletepasasdsasd"
 }
+
+
 
 ### ↑ Bu response'ta dönen UID'yi kontrol et!
 ### Expected: "uid": "deletetest123asd"
@@ -53,7 +57,7 @@ Content-Type: application/json
 ###
 
 ### 6. CLEANUP - Test Kullanıcısını Sil
-DELETE http://localhost:8080/api/users/deletetest123asd
+DELETE http://localhost:8080/api/users/ahmetmehmet123
 Content-Type: application/json
 
 ### ↑ 204 No Content dönmeli
