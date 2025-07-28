@@ -66,6 +66,7 @@ public class DebugController {
                     }
             );
 
+
             result.put("base_dn", "EXISTS");
             result.put("search_result_count", String.valueOf(searchResult.size()));
             result.put("method", "search");
