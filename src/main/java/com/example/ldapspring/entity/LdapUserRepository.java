@@ -5,11 +5,12 @@ import org.springframework.data.ldap.repository.LdapRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface LdapUserRepository extends LdapRepository<LdapUser> {
 
-    LdapUser findByUid(String uid);
+    Optional<LdapUser> findByUid(String uid);
 
 
     LdapUser findByEmail(String email);

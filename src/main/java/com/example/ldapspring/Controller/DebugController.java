@@ -1,9 +1,7 @@
 package com.example.ldapspring.Controller;
 
-import com.example.ldapspring.entity.LdapUser;
-import com.example.ldapspring.service.LdapUserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import com.example.ldapspring.service.CRUDService;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.ContextMapper;
@@ -19,13 +17,14 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/debug")
+@AllArgsConstructor
 public class DebugController {
 
-    @Autowired
-    private LdapTemplate ldapTemplate;
 
-    @Autowired
-    private LdapUserService ldapUserService;
+
+    private final LdapTemplate ldapTemplate;
+
+    private final CRUDService crudService;
 
     @GetMapping("/ping")
     public ResponseEntity<String> ping() {
@@ -48,54 +47,7 @@ public class DebugController {
         return ResponseEntity.ok(result);
     }
 
-    // LdapUserController.java'ya bu metod'u ekleyin
-    @PostMapping("/create-debug")
-    public ResponseEntity<?> createUserDebug(@RequestBody LdapUser user) {
-        Map<String, String> result = new HashMap<>();
 
-        try {
-            System.out.println("=== CREATE DEBUG START ===");
-            System.out.println("Received user: " + user.toString());
-
-            // Adım 1: Input validation
-            result.put("step1_input_received", "OK");
-
-            if (user.getUid() == null || user.getUid().trim().isEmpty()) {
-                result.put("step1_validation", "FAILED - UID empty");
-                return ResponseEntity.badRequest().body(result);
-            }
-            result.put("step1_validation", "OK");
-
-            // Adım 2: Service existence check
-            System.out.println("Checking if user exists...");
-            boolean exists = ldapUserService.userExists(user.getUid());
-            result.put("step2_existence_check", exists ? "USER_EXISTS" : "USER_NOT_EXISTS");
-
-            if (exists) {
-                result.put("step2_result", "FAILED - User already exists");
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(result);
-            }
-            result.put("step2_result", "OK");
-
-            // Adım 3: Service create call
-            System.out.println("Calling createUser service...");
-            LdapUser createdUser = ldapUserService.createUser(user);
-            result.put("step3_service_call", "OK");
-            result.put("step3_created_uid", createdUser.getUid());
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
-
-        } catch (Exception e) {
-            System.err.println("ERROR in create-debug: " + e.getMessage());
-            e.printStackTrace();
-
-            result.put("error", "EXCEPTION");
-            result.put("error_message", e.getMessage());
-            result.put("error_type", e.getClass().getSimpleName());
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
-        }
-    }
 
     @GetMapping("/test-base")
     public ResponseEntity<Map<String, String>> testBaseDN() {
