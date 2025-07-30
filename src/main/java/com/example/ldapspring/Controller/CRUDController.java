@@ -4,6 +4,7 @@ package com.example.ldapspring.Controller;
 import com.example.ldapspring.entity.LdapUser;
 import com.example.ldapspring.service.CRUDService;
 
+import com.example.ldapspring.service.ReadService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +12,9 @@ import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -23,6 +26,8 @@ public class CRUDController {
     private final LdapTemplate ldapTemplate;
 
     private final CRUDService crudService;
+
+    private final ReadService readService;
 
 
 
@@ -69,7 +74,24 @@ public class CRUDController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+    @GetMapping("/user/{uid}")
+    public ResponseEntity<LdapUser> getUser(@PathVariable String uid) {
+        System.out.println("Received user to be found: " + uid);
+        Optional<LdapUser> user = readService.getUserByUid(uid);
 
+        if (user.isPresent()) {
+            return ResponseEntity.status(HttpStatus.OK).body(user.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
 
+    @GetMapping("/user/getall")
+    public ResponseEntity<List<LdapUser>> getAllUsers() {
+        System.out.println("Received get all users request");
+        List<LdapUser> userList = readService.getAllUsers();
+
+        return new  ResponseEntity<>(userList, HttpStatus.OK);
+    }
 
 }

@@ -21,7 +21,7 @@ public class ReadService {
     private final LdapTemplate ldapTemplate;
 
 
-    private List<LdapUser> getAllUsers(){
+    public List<LdapUser> getAllUsers(){
         return ldapUserRepository.findAll();
     }
 

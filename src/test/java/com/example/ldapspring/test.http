@@ -1,0 +1,380 @@
+### LDAP Spring Boot CRUD Operations Test File
+### Base URL: http://localhost:8080
+
+### ============================================
+### 1. DEBUG ENDPOINTS - Test LDAP Connectivity
+### ============================================
+
+### Ping test
+GET http://localhost:8080/api/debug/ping
+
+###
+
+### Check LDAP context
+GET http://localhost:8080/api/debug/ldap-context
+
+###
+
+### Test base DN
+GET http://localhost:8080/api/debug/test-base
+
+###
+
+### Test people OU
+GET http://localhost:8080/api/debug/test-people
+
+###
+
+### Test all organizational units
+GET http://localhost:8080/api/debug/test-all-ous
+
+###
+
+### Check connection info
+GET http://localhost:8080/api/debug/connection-info
+
+###
+
+### Test users in people OU
+GET http://localhost:8080/api/debug/test-users-in-people
+
+###
+
+### Explore LDAP structure
+GET http://localhost:8080/api/debug/ldap-structure
+
+###
+
+### Simple base test
+GET http://localhost:8080/api/debug/simple-base-test
+
+###
+
+### Simple people test
+GET http://localhost:8080/api/debug/simple-people-test
+
+###
+
+### ============================================
+### 2. CREATE USER OPERATIONS
+### ============================================
+
+### Create a new user - John Smith
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "jsmith",
+  "fullName": "John Smith",
+  "lastName": "Smith",
+  "email": "john.smith@example.org",
+  "password": "password123"
+}
+
+###
+
+### Create a new user - Jane Doe
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "jdoe",
+  "fullName": "Jane Doe",
+  "lastName": "Doe",
+  "email": "jane.doe@example.org",
+  "password": "securepass456"
+}
+
+###
+
+### Create a new user - Mike Wilson
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "mwilson",
+  "fullName": "Mike Wilson",
+  "lastName": "Wilson",
+  "email": "mike.wilson@example.org",
+  "password": "mypassword789"
+}
+
+###
+
+### Create user without password (should use default)
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "testuser",
+  "fullName": "Test User",
+  "lastName": "User",
+  "email": "test.user@example.org"
+}
+
+###
+
+### Try to create duplicate user (should fail)
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "jsmith",
+  "fullName": "John Smith Duplicate",
+  "lastName": "Smith",
+  "email": "john.duplicate@example.org",
+  "password": "password123"
+}
+
+###
+
+### Create user with invalid email (should fail)
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "invaliduser",
+  "fullName": "Invalid User",
+  "lastName": "User",
+  "email": "invalid-email",
+  "password": "password123"
+}
+
+###
+
+### Create user with missing required fields (should fail)
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "incomplete",
+  "email": "incomplete@example.org"
+}
+
+###
+
+### ============================================
+### 3. READ USER OPERATIONS (if implemented)
+### ============================================
+
+### Get user by UID (you might need to implement this endpoint)
+GET http://localhost:8080/api/user/getall
+
+###
+
+### Get user by email (you might need to implement this endpoint)
+# GET http://localhost:8080/api/user/email/john.smith@example.org
+
+###
+
+### Get all users (you might need to implement this endpoint)
+# GET http://localhost:8080/api/users
+
+###
+
+### Search users by name (you might need to implement this endpoint)
+# GET http://localhost:8080/api/users/search?name=John
+
+###
+
+### ============================================
+### 4. UPDATE USER OPERATIONS (you might need to implement)
+### ============================================
+
+### Update user - John Smith
+# PUT http://localhost:8080/api/user/jsmith
+# Content-Type: application/json
+#
+# {
+#   "fullName": "John Smith Updated",
+#   "lastName": "Smith",
+#   "email": "john.smith.updated@example.org"
+# }
+
+###
+
+### Update user password
+# PUT http://localhost:8080/api/user/jsmith/password
+# Content-Type: application/json
+#
+# {
+#   "password": "newpassword123"
+# }
+
+###
+
+### ============================================
+### 5. DELETE USER OPERATIONS
+### ============================================
+
+### Delete user - testuser
+POST http://localhost:8080/api/deleteuser/invaliduser
+
+###
+
+### Delete user - jdoe
+POST http://localhost:8080/api/deleteuser/jdoe
+
+###
+
+### Delete user - mwilson
+POST http://localhost:8080/api/deleteuser/mwilson
+
+###
+
+### Try to delete non-existent user (should fail gracefully)
+POST http://localhost:8080/api/deleteuser/nonexistent
+
+###
+
+### Delete user - jsmith (cleanup)
+POST http://localhost:8080/api/deleteuser/jsmith
+
+###
+
+### ============================================
+### 6. STRESS TESTS & EDGE CASES
+### ============================================
+
+### Create user with special characters
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "special.user",
+  "fullName": "Spëcial Üser",
+  "lastName": "Üser",
+  "email": "special.user@example.org",
+  "password": "spëcial!@#$%"
+}
+
+###
+
+### Create user with very long name
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "longname",
+  "fullName": "ThisIsAVeryLongNameThatShouldTestTheLimitsOfTheLDAPImplementationAndSeeHowItHandlesLongStrings",
+  "lastName": "LongLastName",
+  "email": "longname@example.org",
+  "password": "password123"
+}
+
+###
+
+### Create user with minimal data
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "minimal",
+  "fullName": "Min",
+  "lastName": "User",
+  "email": "min@example.org"
+}
+
+###
+
+### ============================================
+### 7. CLEANUP - Delete test users
+### ============================================
+
+### Delete special user
+POST http://localhost:8080/api/deleteuser/special.user
+
+###
+
+### Delete long name user
+POST http://localhost:8080/api/deleteuser/longname
+
+###
+
+### Delete minimal user
+POST http://localhost:8080/api/deleteuser/minimal
+
+###
+
+### ============================================
+### 8. BULK OPERATIONS (for load testing)
+### ============================================
+
+### Create multiple users for load testing
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "bulk001",
+  "fullName": "Bulk User 001",
+  "lastName": "User",
+  "email": "bulk001@example.org",
+  "password": "bulkpass123"
+}
+
+###
+
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "bulk002",
+  "fullName": "Bulk User 002",
+  "lastName": "User",
+  "email": "bulk002@example.org",
+  "password": "bulkpass123"
+}
+
+###
+
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "bulk003",
+  "fullName": "Bulk User 003",
+  "lastName": "User",
+  "email": "bulk003@example.org",
+  "password": "bulkpass123"
+}
+
+###
+
+### Delete bulk users
+POST http://localhost:8080/api/deleteuser/bulk001
+
+###
+
+POST http://localhost:8080/api/deleteuser/bulk002
+
+###
+
+POST http://localhost:8080/api/deleteuser/bulk003
+
+###
+
+### ============================================
+### 9. EXISTING USERS (from bootstrap.ldif)
+### ============================================
+
+### Try to delete existing users (should work)
+POST http://localhost:8080/api/deleteuser/johndoe
+
+###
+
+POST http://localhost:8080/api/deleteuser/anna.meier
+
+###
+
+POST http://localhost:8080/api/deleteuser/peter.schmidt
+
+###
+
+### ============================================
+### NOTES:
+### - Make sure your LDAP server is running: docker-compose up -d
+### - Check application.properties for correct LDAP configuration
+### - Use the debug endpoints first to verify LDAP connectivity
+### - Uncommented lines starting with # are endpoints you might want to implement
+### - Replace localhost:8080 with your actual server URL if different
+### ============================================
