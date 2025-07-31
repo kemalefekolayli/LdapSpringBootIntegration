@@ -1,148 +1,298 @@
-### LDAP Spring Boot CRUD Operations Test File
+### ============================================
+### LDAP SPRING BOOT - COMPLETE TEST SUITE
+### Authentication, Authorization & CRUD Operations
 ### Base URL: http://localhost:8080
-
-### ============================================
-### 1. DEBUG ENDPOINTS - Test LDAP Connectivity
 ### ============================================
 
-### Ping test
+### ============================================
+### SECTION 1: SYSTEM HEALTH & CONNECTIVITY
+### ============================================
+
+### 1.1 Application Health Check
 GET http://localhost:8080/api/debug/ping
 
 ###
 
-### Check LDAP context
+### 1.2 LDAP Connection Test
 GET http://localhost:8080/api/debug/ldap-context
 
 ###
 
-### Test base DN
+### 1.3 LDAP Base DN Test
 GET http://localhost:8080/api/debug/test-base
 
 ###
 
-### Test people OU
+### 1.4 LDAP People OU Test
 GET http://localhost:8080/api/debug/test-people
 
 ###
 
-### Test all organizational units
-GET http://localhost:8080/api/debug/test-all-ous
-
-###
-
-### Check connection info
-GET http://localhost:8080/api/debug/connection-info
-
-###
-
-### Test users in people OU
-GET http://localhost:8080/api/debug/test-users-in-people
-
-###
-
-### Explore LDAP structure
+### 1.5 LDAP Structure Exploration
 GET http://localhost:8080/api/debug/ldap-structure
 
 ###
 
-### Simple base test
-GET http://localhost:8080/api/debug/simple-base-test
-
-###
-
-### Simple people test
-GET http://localhost:8080/api/debug/simple-people-test
+### 1.6 Existing Users in LDAP
+GET http://localhost:8080/api/debug/test-users-in-people
 
 ###
 
 ### ============================================
-### 2. CREATE USER OPERATIONS
+### SECTION 2: AUTHENTICATION TESTS
 ### ============================================
 
-### Create a new user - John Smith
-POST http://localhost:8080/api/create
+### 2.1 Login with Existing User (johndoe)
+POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
 {
-  "uid": "jsmith",
-  "fullName": "John Smith",
-  "lastName": "Smith",
-  "email": "john.smith@example.org",
+  "username": "johndoe",
+  "password": "password123"
+}
+
+###
+@authToken = {{login.response.body.accessToken}}
+@refreshToken = {{login.response.body.refreshToken}}
+
+### 2.2 Login with Another Existing User (anna.meier)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "anna.meier",
+  "password": "password456"
+}
+
+###
+
+### 2.3 Login with Third User (peter.schmidt)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "peter.schmidt",
+  "password": "password789"
+}
+
+###
+@peterToken = {{login.response.body.accessToken}}
+
+### 2.4 Login Failure - Wrong Password
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "johndoe",
+  "password": "wrongpassword"
+}
+
+###
+
+### 2.5 Login Failure - Non-existent User
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "nonexistent",
   "password": "password123"
 }
 
 ###
 
-### Create a new user - Jane Doe
-POST http://localhost:8080/api/create
+### 2.6 Login Failure - Empty Username
+POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
 {
-  "uid": "jdoe",
-  "fullName": "Jane Doe",
-  "lastName": "Doe",
-  "email": "jane.doe@example.org",
-  "password": "securepass456"
+  "username": "",
+  "password": "password123"
 }
 
 ###
 
-### Create a new user - Mike Wilson
-POST http://localhost:8080/api/create
+### 2.7 Login Failure - Empty Password
+POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
 {
-  "uid": "mwilson",
-  "fullName": "Mike Wilson",
-  "lastName": "Wilson",
-  "email": "mike.wilson@example.org",
-  "password": "mypassword789"
+  "username": "johndoe",
+  "password": ""
 }
 
 ###
 
-### Create user without password (should use default)
+### 2.8 Login Failure - Missing Fields
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "johndoe"
+}
+
+###
+
+### ============================================
+### SECTION 3: JWT TOKEN OPERATIONS
+### ============================================
+
+### 3.1 Get Current User Info (with valid token)
+GET http://localhost:8080/api/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2huZG9lIiwiZW1haWwiOiJqb2huZG9lQGV4YW1wbGUub3JnIiwiZnVsbE5hbWUiOiJKb2huIERvZSIsInJvbGVzIjpbIlVTRVIiXSwiaWF0IjoxNzM1NjgyMzM2LCJleHAiOjE3MzU3Njg3MzZ9.TOKEN_HERE
+
+###
+
+### 3.2 Validate Token
+GET http://localhost:8080/api/auth/validate
+Authorization: Bearer TOKEN_HERE
+
+###
+
+### 3.3 Token Validation Failure - Invalid Token
+GET http://localhost:8080/api/auth/validate
+Authorization: Bearer invalid.token.here
+
+###
+
+### 3.4 Token Validation Failure - Missing Token
+GET http://localhost:8080/api/auth/validate
+
+###
+
+### 3.5 Token Validation Failure - Malformed Header
+GET http://localhost:8080/api/auth/validate
+Authorization: InvalidBearer TOKEN_HERE
+
+###
+
+### 3.6 Refresh Token - Valid
+POST http://localhost:8080/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "REFRESH_TOKEN_HERE"
+}
+
+###
+
+### 3.7 Refresh Token - Invalid
+POST http://localhost:8080/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "invalid.refresh.token"
+}
+
+###
+
+### 3.8 Refresh Token - Empty
+POST http://localhost:8080/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": ""
+}
+
+###
+
+### 3.9 Logout - Valid Token
+POST http://localhost:8080/api/auth/logout
+Authorization: Bearer TOKEN_HERE
+
+###
+
+### 3.10 Logout - Invalid Token
+POST http://localhost:8080/api/auth/logout
+Authorization: Bearer invalid.token
+
+###
+
+### ============================================
+### SECTION 4: USER CRUD OPERATIONS
+### ============================================
+
+### 4.1 Create New User for Testing
 POST http://localhost:8080/api/create
 Content-Type: application/json
 
 {
-  "uid": "testuser",
-  "fullName": "Test User",
+  "uid": "testauth",
+  "fullName": "Test Auth User",
   "lastName": "User",
-  "email": "test.user@example.org"
+  "email": "testauth@example.org",
+  "password": "testpass123"
 }
 
 ###
 
-### Try to create duplicate user (should fail)
+### 4.2 Login with Newly Created User
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "testauth",
+  "password": "testpass123"
+}
+
+###
+@newUserToken = {{login.response.body.accessToken}}
+
+### 4.3 Get Current User Info (newly created user)
+GET http://localhost:8080/api/auth/me
+Authorization: Bearer {{newUserToken}}
+
+###
+
+### 4.4 Get All Users (should include new user)
+GET http://localhost:8080/api/user/getall
+
+###
+
+### 4.5 Get Specific User by UID
+GET http://localhost:8080/api/user/testauth
+
+###
+
+### 4.6 Create User with Complex Data
 POST http://localhost:8080/api/create
 Content-Type: application/json
 
 {
-  "uid": "jsmith",
-  "fullName": "John Smith Duplicate",
-  "lastName": "Smith",
-  "email": "john.duplicate@example.org",
+  "uid": "complex.user",
+  "fullName": "Çomplëx Ûser Nâme",
+  "lastName": "Ûser",
+  "email": "complex.user@example.org",
+  "password": "C0mpl3x!P@ssw0rd#123"
+}
+
+###
+
+### 4.7 Login with Complex User
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "complex.user",
+  "password": "C0mpl3x!P@ssw0rd#123"
+}
+
+###
+
+### 4.8 Create User - Duplicate UID (should fail)
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "testauth",
+  "fullName": "Duplicate User",
+  "lastName": "Duplicate",
+  "email": "duplicate@example.org",
   "password": "password123"
 }
 
 ###
 
-### Create user with invalid email (should fail)
-POST http://localhost:8080/api/create
-Content-Type: application/json
-
-{
-  "uid": "invaliduser",
-  "fullName": "Invalid User",
-  "lastName": "User",
-  "email": "invalid-email",
-  "password": "password123"
-}
-
-###
-
-### Create user with missing required fields (should fail)
+### 4.9 Create User - Missing Required Fields
 POST http://localhost:8080/api/create
 Content-Type: application/json
 
@@ -153,154 +303,206 @@ Content-Type: application/json
 
 ###
 
-### ============================================
-### 3. READ USER OPERATIONS (if implemented)
-### ============================================
-
-### Get user by UID (you might need to implement this endpoint)
-GET http://localhost:8080/api/user/getall
-
-###
-
-### Get user by email (you might need to implement this endpoint)
-# GET http://localhost:8080/api/user/email/john.smith@example.org
-
-###
-
-### Get all users (you might need to implement this endpoint)
-# GET http://localhost:8080/api/users
-
-###
-
-### Search users by name (you might need to implement this endpoint)
-# GET http://localhost:8080/api/users/search?name=John
-
-###
-
-### ============================================
-### 4. UPDATE USER OPERATIONS (you might need to implement)
-### ============================================
-
-### Update user - John Smith
-# PUT http://localhost:8080/api/user/jsmith
-# Content-Type: application/json
-#
-# {
-#   "fullName": "John Smith Updated",
-#   "lastName": "Smith",
-#   "email": "john.smith.updated@example.org"
-# }
-
-###
-
-### Update user password
-# PUT http://localhost:8080/api/user/jsmith/password
-# Content-Type: application/json
-#
-# {
-#   "password": "newpassword123"
-# }
-
-###
-
-### ============================================
-### 5. DELETE USER OPERATIONS
-### ============================================
-
-### Delete user - testuser
-POST http://localhost:8080/api/deleteuser/invaliduser
-
-###
-
-### Delete user - jdoe
-POST http://localhost:8080/api/deleteuser/jdoe
-
-###
-
-### Delete user - mwilson
-POST http://localhost:8080/api/deleteuser/mwilson
-
-###
-
-### Try to delete non-existent user (should fail gracefully)
-POST http://localhost:8080/api/deleteuser/nonexistent
-
-###
-
-### Delete user - jsmith (cleanup)
-POST http://localhost:8080/api/deleteuser/jsmith
-
-###
-
-### ============================================
-### 6. STRESS TESTS & EDGE CASES
-### ============================================
-
-### Create user with special characters
+### 4.10 Create User - No Password (should use default)
 POST http://localhost:8080/api/create
 Content-Type: application/json
 
 {
-  "uid": "special.user",
-  "fullName": "Spëcial Üser",
-  "lastName": "Üser",
-  "email": "special.user@example.org",
-  "password": "spëcial!@#$%"
-}
-
-###
-
-### Create user with very long name
-POST http://localhost:8080/api/create
-Content-Type: application/json
-
-{
-  "uid": "longname",
-  "fullName": "ThisIsAVeryLongNameThatShouldTestTheLimitsOfTheLDAPImplementationAndSeeHowItHandlesLongStrings",
-  "lastName": "LongLastName",
-  "email": "longname@example.org",
-  "password": "password123"
-}
-
-###
-
-### Create user with minimal data
-POST http://localhost:8080/api/create
-Content-Type: application/json
-
-{
-  "uid": "minimal",
-  "fullName": "Min",
+  "uid": "nopass",
+  "fullName": "No Password User",
   "lastName": "User",
-  "email": "min@example.org"
+  "email": "nopass@example.org"
+}
+
+###
+
+### 4.11 Login with Default Password User
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "nopass",
+  "password": "defaultpass123"
 }
 
 ###
 
 ### ============================================
-### 7. CLEANUP - Delete test users
+### SECTION 5: ROLE-BASED ACCESS TESTS
 ### ============================================
 
-### Delete special user
-POST http://localhost:8080/api/deleteuser/special.user
+### 5.1 Create Admin User
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "admin.user",
+  "fullName": "Admin User",
+  "lastName": "Admin",
+  "email": "admin@example.org",
+  "password": "adminpass123"
+}
 
 ###
 
-### Delete long name user
-POST http://localhost:8080/api/deleteuser/longname
+### 5.2 Login as Admin
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin.user",
+  "password": "adminpass123"
+}
+
+###
+@adminToken = {{login.response.body.accessToken}}
+
+### 5.3 Check Admin User Roles
+GET http://localhost:8080/api/auth/me
+Authorization: Bearer {{adminToken}}
 
 ###
 
-### Delete minimal user
-POST http://localhost:8080/api/deleteuser/minimal
+### 5.4 Create Developer User
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "dev.user",
+  "fullName": "Developer User",
+  "lastName": "Developer",
+  "email": "developer@example.org",
+  "password": "devpass123"
+}
+
+###
+
+### 5.5 Login as Developer
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "dev.user",
+  "password": "devpass123"
+}
+
+###
+@devToken = {{login.response.body.accessToken}}
+
+### 5.6 Check Developer User Roles
+GET http://localhost:8080/api/auth/me
+Authorization: Bearer {{devToken}}
 
 ###
 
 ### ============================================
-### 8. BULK OPERATIONS (for load testing)
+### SECTION 6: TOKEN EXPIRY & REFRESH TESTS
 ### ============================================
 
-### Create multiple users for load testing
+### 6.1 Login and Store Tokens
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "testauth",
+  "password": "testpass123"
+}
+
+###
+@testAccessToken = {{login.response.body.accessToken}}
+@testRefreshToken = {{login.response.body.refreshToken}}
+
+### 6.2 Use Access Token Immediately
+GET http://localhost:8080/api/auth/me
+Authorization: Bearer {{testAccessToken}}
+
+###
+
+### 6.3 Refresh Token Test
+POST http://localhost:8080/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{testRefreshToken}}"
+}
+
+###
+@newAccessToken = {{refresh.response.body.accessToken}}
+@newRefreshToken = {{refresh.response.body.refreshToken}}
+
+### 6.4 Use New Access Token
+GET http://localhost:8080/api/auth/me
+Authorization: Bearer {{newAccessToken}}
+
+###
+
+### 6.5 Try Using Old Refresh Token (should still work until expiry)
+POST http://localhost:8080/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{testRefreshToken}}"
+}
+
+###
+
+### ============================================
+### SECTION 7: CONCURRENT SESSION TESTS
+### ============================================
+
+### 7.1 Multiple Logins - Same User
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "testauth",
+  "password": "testpass123"
+}
+
+###
+@session1Token = {{login.response.body.accessToken}}
+
+### 7.2 Second Login - Same User
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "testauth",
+  "password": "testpass123"
+}
+
+###
+@session2Token = {{login.response.body.accessToken}}
+
+### 7.3 Use First Session Token
+GET http://localhost:8080/api/auth/me
+Authorization: Bearer {{session1Token}}
+
+###
+
+### 7.4 Use Second Session Token
+GET http://localhost:8080/api/auth/me
+Authorization: Bearer {{session2Token}}
+
+###
+
+### 7.5 Logout First Session
+POST http://localhost:8080/api/auth/logout
+Authorization: Bearer {{session1Token}}
+
+###
+
+### 7.6 Try Using First Session After Logout (should still work - no blacklist yet)
+GET http://localhost:8080/api/auth/me
+Authorization: Bearer {{session1Token}}
+
+###
+
+### ============================================
+### SECTION 8: LOAD & STRESS TESTS
+### ============================================
+
+### 8.1 Bulk User Creation - User 1
 POST http://localhost:8080/api/create
 Content-Type: application/json
 
@@ -314,6 +516,7 @@ Content-Type: application/json
 
 ###
 
+### 8.2 Bulk User Creation - User 2
 POST http://localhost:8080/api/create
 Content-Type: application/json
 
@@ -327,6 +530,7 @@ Content-Type: application/json
 
 ###
 
+### 8.3 Bulk User Creation - User 3
 POST http://localhost:8080/api/create
 Content-Type: application/json
 
@@ -340,7 +544,235 @@ Content-Type: application/json
 
 ###
 
-### Delete bulk users
+### 8.4 Parallel Logins - Bulk User 1
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "bulk001",
+  "password": "bulkpass123"
+}
+
+###
+
+### 8.5 Parallel Logins - Bulk User 2
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "bulk002",
+  "password": "bulkpass123"
+}
+
+###
+
+### 8.6 Parallel Logins - Bulk User 3
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "bulk003",
+  "password": "bulkpass123"
+}
+
+###
+
+### 8.7 Get All Users (should show all created users)
+GET http://localhost:8080/api/user/getall
+
+###
+
+### ============================================
+### SECTION 9: EDGE CASES & ERROR HANDLING
+### ============================================
+
+### 9.1 Login with SQL Injection Attempt
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin'; DROP TABLE users; --",
+  "password": "password123"
+}
+
+###
+
+### 9.2 Login with XSS Attempt
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "<script>alert('XSS')</script>",
+  "password": "password123"
+}
+
+###
+
+### 9.3 Login with Very Long Username
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "ThisIsAVeryLongUsernameToTestTheSystemLimitsAndSeeHowItHandlesExtremelyLongInputsWithoutBreakingTheApplication",
+  "password": "password123"
+}
+
+###
+
+### 9.4 Login with Special Characters
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "tëst.üser@çompany.com",
+  "password": "password123"
+}
+
+###
+
+### 9.5 Create User with Extremely Long Password
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "longpass",
+  "fullName": "Long Password User",
+  "lastName": "User",
+  "email": "longpass@example.org",
+  "password": "ThisIsAnExtremelyLongPasswordToTestPasswordHandlingLimitsAndEnsureTheSystemCanProcessVeryLongPasswordsWithoutBreakingOrCausingSecurityIssues123!@#$%^&*()"
+}
+
+###
+
+### 9.6 Login with Long Password
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "longpass",
+  "password": "ThisIsAnExtremelyLongPasswordToTestPasswordHandlingLimitsAndEnsureTheSystemCanProcessVeryLongPasswordsWithoutBreakingOrCausingSecurityIssues123!@#$%^&*()"
+}
+
+###
+
+### 9.7 Invalid JSON Request
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "password123",
+  "invalidField": "shouldCauseParseError"
+}
+
+###
+
+### 9.8 Malformed Authorization Header
+GET http://localhost:8080/api/auth/me
+Authorization: NotBearer InvalidTokenFormat
+
+###
+
+### 9.9 Empty Request Body
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{}
+
+###
+
+### ============================================
+### SECTION 10: INTEGRATION TESTS
+### ============================================
+
+### 10.1 Complete User Journey - Registration to Logout
+# Step 1: Create user
+POST http://localhost:8080/api/create
+Content-Type: application/json
+
+{
+  "uid": "journey.user",
+  "fullName": "Journey User",
+  "lastName": "User",
+  "email": "journey@example.org",
+  "password": "journeypass123"
+}
+
+###
+
+# Step 2: Login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "journey.user",
+  "password": "journeypass123"
+}
+
+###
+@journeyToken = {{login.response.body.accessToken}}
+@journeyRefresh = {{login.response.body.refreshToken}}
+
+# Step 3: Get user info
+GET http://localhost:8080/api/auth/me
+Authorization: Bearer {{journeyToken}}
+
+###
+
+# Step 4: Validate token
+GET http://localhost:8080/api/auth/validate
+Authorization: Bearer {{journeyToken}}
+
+###
+
+# Step 5: Refresh token
+POST http://localhost:8080/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{journeyRefresh}}"
+}
+
+###
+@newJourneyToken = {{refresh.response.body.accessToken}}
+
+# Step 6: Use new token
+GET http://localhost:8080/api/auth/me
+Authorization: Bearer {{newJourneyToken}}
+
+###
+
+# Step 7: Logout
+POST http://localhost:8080/api/auth/logout
+Authorization: Bearer {{newJourneyToken}}
+
+###
+
+### ============================================
+### SECTION 11: CLEANUP OPERATIONS
+### ============================================
+
+### 11.1 Delete Test Users
+POST http://localhost:8080/api/deleteuser/testauth
+
+###
+
+POST http://localhost:8080/api/deleteuser/complex.user
+
+###
+
+POST http://localhost:8080/api/deleteuser/nopass
+
+###
+
+POST http://localhost:8080/api/deleteuser/admin.user
+
+###
+
+POST http://localhost:8080/api/deleteuser/dev.user
+
+###
+
 POST http://localhost:8080/api/deleteuser/bulk001
 
 ###
@@ -353,28 +785,66 @@ POST http://localhost:8080/api/deleteuser/bulk003
 
 ###
 
-### ============================================
-### 9. EXISTING USERS (from bootstrap.ldif)
-### ============================================
-
-### Try to delete existing users (should work)
-POST http://localhost:8080/api/deleteuser/johndoe
+POST http://localhost:8080/api/deleteuser/longpass
 
 ###
 
-POST http://localhost:8080/api/deleteuser/anna.meier
+POST http://localhost:8080/api/deleteuser/journey.user
 
 ###
 
-POST http://localhost:8080/api/deleteuser/peter.schmidt
+### 11.2 Final System Check
+GET http://localhost:8080/api/user/getall
+
+###
+
+### 11.3 Final Health Check
+GET http://localhost:8080/api/debug/ping
 
 ###
 
 ### ============================================
-### NOTES:
-### - Make sure your LDAP server is running: docker-compose up -d
-### - Check application.properties for correct LDAP configuration
-### - Use the debug endpoints first to verify LDAP connectivity
-### - Uncommented lines starting with # are endpoints you might want to implement
-### - Replace localhost:8080 with your actual server URL if different
+### TEST EXECUTION NOTES:
+### ============================================
+###
+### PREREQUISITES:
+### 1. Start LDAP server: cd ldap-docker && docker-compose up -d
+### 2. Start Spring Boot app: ./mvnw spring-boot:run
+### 3. Verify LDAP connectivity with Section 1 tests first
+###
+### EXECUTION ORDER:
+### 1. Run Section 1 (Health Checks) first
+### 2. Run Section 2 (Authentication) to verify login works
+### 3. Run remaining sections in order
+### 4. Run Section 11 (Cleanup) at the end
+###
+### EXPECTED RESULTS:
+### ✅ Section 1: All health checks should pass
+### ✅ Section 2: Existing LDAP users should login successfully
+### ✅ Section 3: JWT operations should work with valid tokens
+### ✅ Section 4: CRUD operations should work as expected
+### ✅ Section 5: Role assignments should be visible in JWT claims
+### ✅ Section 6: Token refresh should work properly
+### ✅ Section 7: Multiple sessions should work independently
+### ✅ Section 8: Bulk operations should complete successfully
+### ❌ Section 9: Error cases should fail gracefully with proper error messages
+### ✅ Section 10: End-to-end workflows should complete successfully
+### ✅ Section 11: Cleanup should remove all test data
+###
+### VARIABLES USED:
+### - Replace TOKEN_HERE with actual tokens from login responses
+### - Use response variables: {{login.response.body.accessToken}}
+### - Tokens are automatically captured for subsequent requests
+###
+### MONITORING:
+### - Check application logs for detailed error information
+### - Monitor LDAP server logs: docker logs openldap
+### - Use /api/debug endpoints for troubleshooting
+###
+### PERFORMANCE EXPECTATIONS:
+### - Login operations: < 500ms
+### - Token validation: < 100ms
+### - CRUD operations: < 300ms
+### - LDAP operations: < 200ms
+###
 ### ============================================
