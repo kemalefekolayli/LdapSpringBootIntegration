@@ -32,7 +32,7 @@ public class RoleService {
         Role role = roleRepository.findById(roleId)
                 .orElseThrow(() -> new RuntimeException("Role not found with id: " + roleId));
 
-        // Eğer isim değişecekse, başka rol bu ismi kullanıyor mu kontrolü
+
         if (!role.getName().equals(name) && roleRepository.existsByName(name)) {
             throw new RuntimeException("Role already exists with name: " + name);
         }
@@ -42,7 +42,7 @@ public class RoleService {
         return roleRepository.save(role);
     }
 
-    // Rolü deaktif etme
+
     public void deactivateRole(Long roleId) {
         Role role = roleRepository.findById(roleId)
                 .orElseThrow(() -> new RuntimeException("Role not found with id: " + roleId));
@@ -51,27 +51,27 @@ public class RoleService {
         roleRepository.save(role);
     }
 
-    // Rol adı ile bulma
+
     public Optional<Role> findByName(String name) {
         return roleRepository.findByName(name);
     }
 
-    // ID ile bulma
+
     public Optional<Role> findById(Long roleId) {
         return roleRepository.findById(roleId);
     }
 
-    // Tüm aktif rolleri listeleme
+
     public List<Role> getAllActiveRoles() {
         return roleRepository.findByIsActiveTrue();
     }
 
-    // Kullanıcının rollerini bulma
+
     public List<Role> getUserRoles(String ldapUid) {
         return roleRepository.findByUserLdapUid(ldapUid);
     }
 
-    // Rol arama
+
     public List<Role> searchRoles(String name) {
         return roleRepository.findByNameContainingIgnoreCase(name);
     }

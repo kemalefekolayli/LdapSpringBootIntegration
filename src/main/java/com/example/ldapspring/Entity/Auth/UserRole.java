@@ -30,11 +30,10 @@ public class UserRole {
     private Role role;
 
     @Column(name = "assigned_by")
-    private String assignedBy; // Kim atadı
+    private String assignedBy;
 
     @Column(name = "expires_at")
-    private LocalDateTime expiresAt; // Geçici roller için
-
+    private LocalDateTime expiresAt;
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
@@ -42,7 +41,6 @@ public class UserRole {
     @Column(name = "assigned_at", nullable = false, updatable = false)
     private LocalDateTime assignedAt;
 
-    // Constructor
     public UserRole(User user, Role role, String assignedBy) {
         this.user = user;
         this.role = role;

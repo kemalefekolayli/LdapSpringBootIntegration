@@ -42,14 +42,14 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // İlişkiler
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<UserRole> userRoles = new HashSet<>();
 
     @ManyToMany(mappedBy = "users", fetch = FetchType.LAZY)
     private Set<Group> groups = new HashSet<>();
 
-    // Constructor
+
     public User(String ldapUid, String email, String fullName) {
         this.ldapUid = ldapUid;
         this.email = email;

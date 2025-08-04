@@ -39,14 +39,14 @@ public class Role {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // İlişkiler
+
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<UserRole> userRoles = new HashSet<>();
 
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
     private Set<Group> groups = new HashSet<>();
 
-    // Constructor
+
     public Role(String name, String description) {
         this.name = name;
         this.description = description;

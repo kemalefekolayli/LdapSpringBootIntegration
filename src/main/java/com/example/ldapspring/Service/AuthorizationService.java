@@ -21,7 +21,7 @@ public class AuthorizationService {
     private final GroupService groupService;
     private final RoleService roleService;
 
-    // Kullanıcının tüm rollerini getirme (direkt + grup üzerinden)
+
     public Set<String> getAllUserRoles(String ldapUid) {
         Set<String> allRoles = new HashSet<>();
 
@@ -69,7 +69,7 @@ public class AuthorizationService {
         return false;
     }
 
-    // Kullanıcının herhangi bir rolü var mı kontrol etme
+
     public boolean hasAnyRole(String ldapUid, String... roleNames) {
         for (String roleName : roleNames) {
             if (hasRole(ldapUid, roleName)) {
@@ -79,12 +79,12 @@ public class AuthorizationService {
         return false;
     }
 
-    // Kullanıcının tüm gruplarını getirme
+
     public List<Group> getUserGroups(String ldapUid) {
         return groupService.getUserGroups(ldapUid);
     }
 
-    // Kullanıcının yetkilendirme özeti
+
     public UserAuthorizationSummary getUserAuthorizationSummary(String ldapUid) {
         Set<String> allRoles = getAllUserRoles(ldapUid);
         List<Group> userGroups = getUserGroups(ldapUid);
@@ -98,7 +98,6 @@ public class AuthorizationService {
         );
     }
 
-    // Inner class - Kullanıcı yetkilendirme özeti
     public static class UserAuthorizationSummary {
         private final String ldapUid;
         private final Set<String> allRoles;

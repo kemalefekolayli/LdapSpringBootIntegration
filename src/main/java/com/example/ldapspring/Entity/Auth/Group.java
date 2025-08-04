@@ -39,7 +39,7 @@ public class Group {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // İlişkiler - Many-to-Many
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_groups",
@@ -56,7 +56,7 @@ public class Group {
     )
     private Set<Role> roles = new HashSet<>();
 
-    // Constructor
+
     public Group(String name, String description) {
         this.name = name;
         this.description = description;
