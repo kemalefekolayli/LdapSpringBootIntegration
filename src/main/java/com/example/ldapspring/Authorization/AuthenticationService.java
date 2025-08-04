@@ -1,7 +1,7 @@
 package com.example.ldapspring.Authorization;
 
-import com.example.ldapspring.entity.LdapUser;
-import com.example.ldapspring.service.ReadService;
+import com.example.ldapspring.Entity.LdapUser;
+import com.example.ldapspring.Service.ReadService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -27,8 +27,6 @@ class AuthenticationService {
 
     public boolean validateCredentials(String username, String password) {
         try {
-            // LDAP bind operation using LdapQuery
-            // Search for user in people OU and authenticate
             return ldapTemplate.authenticate("ou=people", "(uid=" + username + ")", password);
         } catch (Exception e) {
             System.err.println("LDAP authentication failed for user: " + username + " - " + e.getMessage());

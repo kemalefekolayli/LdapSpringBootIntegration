@@ -1,6 +1,6 @@
-package com.example.ldapspring.entity;
+package com.example.ldapspring.Repositories;
 
-import com.example.ldapspring.entity.LdapUser;
+import com.example.ldapspring.Entity.LdapUser;
 import org.springframework.data.ldap.repository.LdapRepository;
 import org.springframework.stereotype.Repository;
 

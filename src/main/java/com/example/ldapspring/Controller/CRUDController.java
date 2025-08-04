@@ -1,10 +1,10 @@
 package com.example.ldapspring.Controller;
 
 
-import com.example.ldapspring.entity.LdapUser;
-import com.example.ldapspring.service.CRUDService;
+import com.example.ldapspring.Entity.LdapUser;
+import com.example.ldapspring.Service.CRUDService;
 
-import com.example.ldapspring.service.ReadService;
+import com.example.ldapspring.Service.ReadService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

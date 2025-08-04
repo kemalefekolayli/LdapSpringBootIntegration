@@ -1,13 +1,12 @@
 package com.example.ldapspring.Authorization;
 
-import com.example.ldapspring.entity.LdapUser;
-import com.example.ldapspring.service.ReadService;
+import com.example.ldapspring.Entity.LdapUser;
+import com.example.ldapspring.Service.ReadService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;

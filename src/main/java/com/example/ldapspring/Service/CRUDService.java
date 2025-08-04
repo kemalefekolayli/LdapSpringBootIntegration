@@ -1,20 +1,11 @@
-package com.example.ldapspring.service;
+package com.example.ldapspring.Service;
 
-import com.example.ldapspring.entity.LdapUser;
-import com.example.ldapspring.entity.LdapUserRepository;
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.example.ldapspring.Entity.LdapUser;
+import com.example.ldapspring.Repositories.LdapUserRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 

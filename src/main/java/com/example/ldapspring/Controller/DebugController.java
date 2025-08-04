@@ -1,6 +1,6 @@
 package com.example.ldapspring.Controller;
 
-import com.example.ldapspring.service.CRUDService;
+import com.example.ldapspring.Service.CRUDService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ldap.core.AttributesMapper;

@@ -1,7 +1,6 @@
-package com.example.ldapspring.service;
+package com.example.ldapspring.Service;
 
 
-import com.example.ldapspring.entity.LdapUser;
 import org.springframework.stereotype.Service;
 
 @Service

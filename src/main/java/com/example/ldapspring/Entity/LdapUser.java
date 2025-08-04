@@ -1,4 +1,4 @@
-package com.example.ldapspring.entity;
+package com.example.ldapspring.Entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;

@@ -2,7 +2,7 @@
 // AuthenticationResponse.java  
 package com.example.ldapspring.Authorization;
 
-import com.example.ldapspring.entity.LdapUser;
+import com.example.ldapspring.Entity.LdapUser;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
