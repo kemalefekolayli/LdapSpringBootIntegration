@@ -2,11 +2,14 @@ package com.example.ldapspring.Authorization;
 
 import com.example.ldapspring.Entity.LdapUser;
 import com.example.ldapspring.Service.ReadService;
+import com.example.ldapspring.Service.RoleService;
+import com.example.ldapspring.Entity.Auth.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.AllArgsConstructor;
 import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +27,7 @@ public class AuthenticationService {
     private final LdapTemplate ldapTemplate;
     private final ReadService readService;
     private final JwtConfig jwtConfig;
+    private final RoleService roleService;
 
     public boolean validateCredentials(String username, String password) {
         try {
@@ -144,21 +148,14 @@ public class AuthenticationService {
                 .getPayload();
     }
 
-    // Role Management - Şimdilik basit implementation, gelecekte PostgreSQL'den gelecek
+    // Role Management - PostgreSQL tabanlı yetkilendirme
     private List<String> getUserRoles(String username) {
-        // TODO: Bu method gelecekte PostgreSQL authorization servisinden gelecek
-        // Şimdilik default roller dönüyoruz
-
-        // LDAP grup bilgilerini kontrol edebiliriz (opsiyonel)
         try {
-            // Bootstrap.ldif'te group membership var mı kontrol et
-            if (isUserInGroup(username, "developers")) {
-                return Arrays.asList("USER", "DEVELOPER");
-            } else if (isUserInGroup(username, "scientists")) {
-                return Arrays.asList("USER", "SCIENTIST");
-            } else {
+            List<Role> roles = roleService.getUserRoles(username);
+            if (roles.isEmpty()) {
                 return Arrays.asList("USER");
             }
+            return roles.stream().map(Role::getName).collect(java.util.stream.Collectors.toList());
         } catch (Exception e) {
             System.err.println("Error getting user roles: " + e.getMessage());
             return Arrays.asList("USER"); // Default role
@@ -167,18 +164,12 @@ public class AuthenticationService {
 
     private boolean isUserInGroup(String username, String groupName) {
         try {
-            // LDAP'te grup üyeliğini kontrol et
             String userDn = "uid=" + username + ",ou=people,dc=example,dc=org";
-            String groupDn = "cn=" + groupName + ",ou=groups,dc=example,dc=org";
-
-            // Grup var mı kontrol et
-            Object group = ldapTemplate.lookup(groupDn);
-            if (group != null) {
-                // Üyelik kontrolü - bu kısım grup yapısına göre değişebilir
-                // Şimdilik basit kontrol yapıyoruz
-                return true; // TODO: Gerçek üyelik kontrolü implement et
-            }
-            return false;
+            String base = "ou=groups,dc=example,dc=org";
+            String filter = "(&(cn=" + groupName + ")(|(member=" + userDn + ")" +
+                    "(uniqueMember=" + userDn + ")" +
+                    "(memberUid=" + username + ")))";
+            return !ldapTemplate.search(base, filter, (AttributesMapper<Object>) attrs -> null).isEmpty();
         } catch (Exception e) {
             System.err.println("Group membership check failed: " + e.getMessage());
             return false;
