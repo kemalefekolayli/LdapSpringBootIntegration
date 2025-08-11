@@ -1,17 +1,54 @@
 package com.example.ldapspring.Authorization;
 
-
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+/**
+ * Configuration properties for JWT related settings. Values can be updated at
+ * runtime through the AdminController.
+ */
 @Component
-class JwtConfig {
-    @Value("${jwt.secret:mySecretKey}")
-    String jwtSecret;
+@ConfigurationProperties(prefix = "jwt")
+public class JwtConfig {
 
-    @Value("${jwt.expiration:86400000}") // 24 hours
-    long jwtExpirationMs;
+    /** Secret key used for signing JWT tokens. */
+    private String secret = "mySecretKey";
 
-    @Value("${jwt.refresh.expiration:604800000}") // 7 days
-    long refreshExpirationMs;
+    /** Access token validity in milliseconds. */
+    private long expiration = 86400000L; // 24 hours
+
+    private final Refresh refresh = new Refresh();
+
+    public String getSecret() {
+        return secret;
+    }
+
+    public void setSecret(String secret) {
+        this.secret = secret;
+    }
+
+    public long getExpiration() {
+        return expiration;
+    }
+
+    public void setExpiration(long expiration) {
+        this.expiration = expiration;
+    }
+
+    public Refresh getRefresh() {
+        return refresh;
+    }
+
+    public static class Refresh {
+        /** Refresh token validity in milliseconds. */
+        private long expiration = 604800000L; // 7 days
+
+        public long getExpiration() {
+            return expiration;
+        }
+
+        public void setExpiration(long expiration) {
+            this.expiration = expiration;
+        }
+    }
 }
