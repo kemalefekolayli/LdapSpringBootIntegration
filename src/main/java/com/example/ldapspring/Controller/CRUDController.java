@@ -85,6 +85,17 @@ public class CRUDController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
+    @PutMapping("/user/{uid}")
+    public ResponseEntity<LdapUser> updateUser(@PathVariable String uid, @RequestBody LdapUser user) {
+        LdapUser updated = crudService.updateUser(uid, user);
+        return ResponseEntity.status(HttpStatus.OK).body(updated);
+    }
+
+    @PatchMapping("/user/{uid}/disable")
+    public ResponseEntity<LdapUser> disableUser(@PathVariable String uid) {
+        LdapUser updated = crudService.disableUser(uid);
+        return ResponseEntity.status(HttpStatus.OK).body(updated);
+    }
 
     @GetMapping("/user/getall")
     public ResponseEntity<List<LdapUser>> getAllUsers() {

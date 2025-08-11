@@ -44,9 +44,7 @@ public class CRUDService {
         }
     }
 
-    private boolean updateUser(){
-    return true;
-    }
+
 
     public void deleteUser(String uid) {
         try {
@@ -66,5 +64,41 @@ public class CRUDService {
     }
 
 
+    public LdapUser updateUser(String uid, LdapUser updatedUser) {
+        try {
+            LdapUser existingUser = ldapUserRepository.findByUid(uid)
+                    .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + uid));
 
+            if (updatedUser.getFullName() != null) {
+                existingUser.setFullName(updatedUser.getFullName());
+            }
+            if (updatedUser.getLastName() != null) {
+                existingUser.setLastName(updatedUser.getLastName());
+            }
+            if (updatedUser.getEmail() != null) {
+                existingUser.setEmail(updatedUser.getEmail());
+            }
+            if (updatedUser.getPassword() != null) {
+                existingUser.setPassword(updatedUser.getPassword());
+            }
+
+            return ldapUserRepository.save(existingUser);
+        } catch (Exception e) {
+            throw new RuntimeException("Kullanıcı güncellenemedi: " + e.getMessage(), e);
+        }
+    }
+
+
+
+    public LdapUser disableUser(String uid) {
+        try {
+            LdapUser user = ldapUserRepository.findByUid(uid)
+                    .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı: " + uid));
+
+            user.setPassword("{DISABLED}");
+            return ldapUserRepository.save(user);
+        } catch (Exception e) {
+            throw new RuntimeException("Kullanıcı devre dışı bırakılamadı: " + e.getMessage(), e);
+        }
+    }
 }

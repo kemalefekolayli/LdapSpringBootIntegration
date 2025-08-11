@@ -19,7 +19,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-class AuthenticationService {
+public class AuthenticationService {
 
     private final LdapTemplate ldapTemplate;
     private final ReadService readService;
