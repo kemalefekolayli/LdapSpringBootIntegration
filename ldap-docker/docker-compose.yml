@@ -1,8 +1,7 @@
-version: '3'
-
 networks:
   ldap_network:
     driver: bridge
+
 services:
   openldap:
     image: osixia/openldap:latest
@@ -21,6 +20,7 @@ services:
       - "389:389"                   # default port for unsecured LDAP
     command: --copy-service
     restart: unless-stopped
+
   phpldapadmin:
     image: osixia/phpldapadmin:latest
     container_name: phpldapadmin
@@ -34,3 +34,29 @@ services:
     restart: unless-stopped
     depends_on:
       - openldap
+
+  # PostgreSQL Database - YENİ EKLENDİ
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: ldap_auth_db
+      POSTGRES_USER: ldap_user
+      POSTGRES_PASSWORD: ldap_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ldap_network
+    ports:
+      - "5433:5432"  # Dış port 5433, iç port 5432
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ldap_user -d ldap_auth_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# Volumes tanımı - YENİ EKLENDİ
+volumes:
+  postgres_data:
+    driver: local
