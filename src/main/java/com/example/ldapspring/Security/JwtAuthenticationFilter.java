@@ -12,7 +12,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -46,11 +47,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 2) Kullanıcı adı + roller
         String username = authService.extractUsernameFromToken(token);
 
-        // Tercih 1: Rolleri token claim'den oku (önerilen)
-        List<String> roles = extractRolesFromTokenSafely(token);
-
-        // Tercih 2: (İstersen) her istekte DB/LDAP’tan rollerini çöz
-        // List<String> roles = authService.getUserRoles(username);
+        // AuthenticationService'den roller
+        List<String> roles = authService.getUserRoles(username);
 
         List<SimpleGrantedAuthority> authorities = roles.stream()
                 .filter(Objects::nonNull)
@@ -64,17 +62,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    @SuppressWarnings("unchecked")
-    private List<String> extractRolesFromTokenSafely(String token) {
-        try {
-            Map<String, Object> claims = authService.getAllClaims(token);
-            Object rolesObj = claims.get("roles");
-            if (rolesObj instanceof List<?>) {
-                return ((List<?>) rolesObj).stream()
-                        .map(Object::toString)
-                        .toList();
-            }
-        } catch (Exception ignored) {}
-        return Collections.emptyList();
-    }
 }

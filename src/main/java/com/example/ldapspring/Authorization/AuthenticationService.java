@@ -149,7 +149,7 @@ public class AuthenticationService {
     }
 
     // Role Management - PostgreSQL tabanlı yetkilendirme
-    private List<String> getUserRoles(String username) {
+    public List<String> getUserRoles(String username) {
         try {
             List<Role> roles = roleService.getUserRoles(username);
             if (roles.isEmpty()) {
