@@ -4,6 +4,7 @@ import com.example.ldapspring.Entity.LdapUser;
 import com.example.ldapspring.Service.ReadService;
 import com.example.ldapspring.Service.RoleService;
 import com.example.ldapspring.Entity.Auth.Role;
+import com.example.ldapspring.MonitoringService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -28,12 +29,17 @@ public class AuthenticationService {
     private final ReadService readService;
     private final JwtConfig jwtConfig;
     private final RoleService roleService;
+    private final MonitoringService monitoringService;
 
     public boolean validateCredentials(String username, String password) {
         try {
-            return ldapTemplate.authenticate("ou=people", "(uid=" + username + ")", password);
+            boolean result = ldapTemplate.authenticate("ou=people", "(uid=" + username + ")", password);
+            if (!result) {
+                monitoringService.logLoginFailure(username);
+            }
+            return result;
         } catch (Exception e) {
-            System.err.println("LDAP authentication failed for user: " + username + " - " + e.getMessage());
+            monitoringService.logLdapError("LDAP authentication failed for user: " + username, e);
             return false;
         }
     }
@@ -45,7 +51,7 @@ public class AuthenticationService {
                 .claim("fullName", user.getFullName())
                 .claim("roles", roles)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtConfig.jwtExpirationMs))
+                .expiration(new Date(System.currentTimeMillis() + jwtConfig.getExpiration()))
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -55,7 +61,7 @@ public class AuthenticationService {
                 .subject(username)
                 .claim("type", "refresh")
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtConfig.refreshExpirationMs))
+                .expiration(new Date(System.currentTimeMillis() + jwtConfig.getRefresh().getExpiration()))
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -79,7 +85,7 @@ public class AuthenticationService {
         String accessToken = generateJwtToken(ldapUser.get(), roles);
         String refreshToken = generateRefreshToken(username);
 
-        return new AuthenticationResponse(accessToken, refreshToken, ldapUser.get(), roles, jwtConfig.jwtExpirationMs);
+        return new AuthenticationResponse(accessToken, refreshToken, ldapUser.get(), roles, jwtConfig.getExpiration());
     }
 
     public AuthenticationResponse refreshToken(String refreshToken) {
@@ -102,12 +108,12 @@ public class AuthenticationService {
         String newAccessToken = generateJwtToken(user.get(), roles);
         String newRefreshToken = generateRefreshToken(username);
 
-        return new AuthenticationResponse(newAccessToken, newRefreshToken, user.get(), roles, jwtConfig.jwtExpirationMs);
+        return new AuthenticationResponse(newAccessToken, newRefreshToken, user.get(), roles, jwtConfig.getExpiration());
     }
 
     // JWT Utility Methods
     private SecretKey getSigningKey() {
-        byte[] keyBytes = jwtConfig.jwtSecret.getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = jwtConfig.getSecret().getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -120,7 +126,7 @@ public class AuthenticationService {
             extractAllClaims(token);
             return !isTokenExpired(token);
         } catch (Exception e) {
-            System.err.println("Token validation failed: " + e.getMessage());
+            monitoringService.logEvent("TOKEN_VALIDATION_FAILED", e.getMessage());
             return false;
         }
     }
@@ -131,7 +137,7 @@ public class AuthenticationService {
             String tokenType = claims.get("type", String.class);
             return "refresh".equals(tokenType) && !isTokenExpired(token);
         } catch (Exception e) {
-            System.err.println("Refresh token validation failed: " + e.getMessage());
+            monitoringService.logEvent("REFRESH_TOKEN_VALIDATION_FAILED", e.getMessage());
             return false;
         }
     }
@@ -157,7 +163,7 @@ public class AuthenticationService {
             }
             return roles.stream().map(Role::getName).collect(java.util.stream.Collectors.toList());
         } catch (Exception e) {
-            System.err.println("Error getting user roles: " + e.getMessage());
+            monitoringService.logLdapError("Error getting user roles for user: " + username, e);
             return Arrays.asList("USER"); // Default role
         }
     }
@@ -171,7 +177,7 @@ public class AuthenticationService {
                     "(memberUid=" + username + ")))";
             return !ldapTemplate.search(base, filter, (AttributesMapper<Object>) attrs -> null).isEmpty();
         } catch (Exception e) {
-            System.err.println("Group membership check failed: " + e.getMessage());
+            monitoringService.logLdapError("Group membership check failed for user: " + username, e);
             return false;
         }
     }

@@ -2,6 +2,7 @@ package com.example.ldapspring.Authorization;
 
 import com.example.ldapspring.Entity.LdapUser;
 import com.example.ldapspring.Service.ReadService;
+import com.example.ldapspring.MonitoringService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ public class AuthController {
 
     private final AuthenticationService authenticationService;
     private final ReadService readService;
+    private final MonitoringService monitoringService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody AuthenticationRequest request) {
@@ -35,21 +37,21 @@ public class AuthController {
             return ResponseEntity.ok(response);
 
         } catch (BadCredentialsException e) {
-            System.err.println("Invalid credentials for user: " + request.getUsername());
+            monitoringService.logLoginFailure(request.getUsername());
             Map<String, String> error = new HashMap<>();
             error.put("error", "INVALID_CREDENTIALS");
             error.put("message", "Invalid username or password");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
 
         } catch (AuthenticationService.UserNotFoundException e) {
-            System.err.println("User not found: " + request.getUsername());
+            monitoringService.logEvent("USER_NOT_FOUND", "User not found: " + request.getUsername());
             Map<String, String> error = new HashMap<>();
             error.put("error", "USER_NOT_FOUND");
             error.put("message", "User not found in LDAP directory");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
 
         } catch (Exception e) {
-            System.err.println("Authentication error for user " + request.getUsername() + ": " + e.getMessage());
+            monitoringService.logEvent("AUTHENTICATION_ERROR", e.getMessage());
             e.printStackTrace();
             Map<String, String> error = new HashMap<>();
             error.put("error", "AUTHENTICATION_ERROR");
@@ -70,21 +72,21 @@ public class AuthController {
             return ResponseEntity.ok(response);
 
         } catch (AuthenticationService.InvalidTokenException e) {
-            System.err.println("Invalid refresh token");
+            monitoringService.logEvent("INVALID_REFRESH_TOKEN", e.getMessage());
             Map<String, String> error = new HashMap<>();
             error.put("error", "INVALID_REFRESH_TOKEN");
             error.put("message", "Invalid or expired refresh token");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
 
         } catch (AuthenticationService.UserNotFoundException e) {
-            System.err.println("User not found during token refresh");
+            monitoringService.logEvent("USER_NOT_FOUND", "User not found during token refresh");
             Map<String, String> error = new HashMap<>();
             error.put("error", "USER_NOT_FOUND");
             error.put("message", "User no longer exists");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
 
         } catch (Exception e) {
-            System.err.println("Token refresh error: " + e.getMessage());
+            monitoringService.logEvent("TOKEN_REFRESH_ERROR", e.getMessage());
             e.printStackTrace();
             Map<String, String> error = new HashMap<>();
             error.put("error", "TOKEN_REFRESH_ERROR");
@@ -127,7 +129,7 @@ public class AuthController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            System.err.println("Logout error: " + e.getMessage());
+            monitoringService.logEvent("LOGOUT_ERROR", e.getMessage());
             Map<String, String> error = new HashMap<>();
             error.put("error", "LOGOUT_ERROR");
             error.put("message", "Logout failed");
@@ -175,7 +177,7 @@ public class AuthController {
             return ResponseEntity.ok(user.get());
 
         } catch (Exception e) {
-            System.err.println("Get current user error: " + e.getMessage());
+            monitoringService.logEvent("GET_USER_ERROR", e.getMessage());
             Map<String, String> error = new HashMap<>();
             error.put("error", "GET_USER_ERROR");
             error.put("message", "Failed to get current user");
